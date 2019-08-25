@@ -13,12 +13,13 @@ IMAGE_W = 224
 CHANNEL = 3
 TEST_NUM = 2000
 TEST_BATCH = 100
-MAXSTEP = 100
-CHECK_STEP = 10
+MAXSTEP = 1000
+CHECK_STEP = 50
 NUM_CLASSES = 10
 
 train_dir = "D:\\xunleiDownload\\RMB\\train_data\\"
 label_csv = "D:\\xunleiDownload\\RMB\\train_face_value_label.csv"
+model_dir = "D:\\GitFile\\RMB\\Q1\\model"
 
 train_dataset = tf.data.Dataset.from_generator(train_data_gen, output_types = (tf.float32, tf.int32))
 train_dataset = train_dataset.shuffle(100).batch(BATCH_SIZE).repeat()
@@ -51,6 +52,8 @@ history["test_acc"] = []
 
 with tf.Session() as sess:
 
+	saver = tf.train.Saver()
+
 	sess.run(tf.global_variables_initializer())
 	time_cost = 0
 	start_time = time.time()
@@ -71,7 +74,9 @@ with tf.Session() as sess:
 		if step%CHECK_STEP == 0:
 			end_time = time.time()
 			time_cost = end_time - start_time
-			print("Step %d, time cost: %.1f, train loss: %.2fs, train acc: %.2f%%, test loss: %.2f, test_acc: %.2f%%." % (step, time_cost, train_loss, train_acc*100, test_loss, test_acc*100))
+			print("Step %d, time cost: %.1fs, train loss: %.2f, train acc: %.2f%%, test loss: %.2f, test_acc: %.2f%%." % (step, time_cost, train_loss, train_acc*100, test_loss, test_acc*100))
 			start_time = time.time()
+
+	saver.save(sess, os.path.join(model_dir, "model_random_crop.ckpt"))
 
 show_result(history)
