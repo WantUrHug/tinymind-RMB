@@ -3,6 +3,7 @@ import os
 import shutil
 from pprint import pprint
 import cv2
+from tensorflow import random_crop
 
 def split_train_test(src, dst, test_size = 0.1):
 
@@ -68,8 +69,9 @@ def args_wrapper(*args, **kwargs):
 	dir = "D:\\xunleiDownload\\RMB\\sp_data\\train",
 	label_csv = "D:\\xunleiDownload\\RMB\\train_face_value_label.csv",
 	image_h = 224,
-	image_w = 224)
-def train_data_gen(dir, label_csv, image_h, image_w):
+	image_w = 224,
+	method = "RANDOM_CROP")
+def train_data_gen(dir, label_csv, image_h, image_w, method):
 	
 	classes = ["0.1", "0.2", "0.5", "1", "2", "5", "10", "20", "50", "100"]
 	NUM_CLASSES = len(classes)
@@ -86,14 +88,15 @@ def train_data_gen(dir, label_csv, image_h, image_w):
 
 	for i in os.listdir(dir):
 
-		yield get_pixel(os.path.join(dir, i), image_h, image_w), class_dict[csv_dict[i]]
+		yield get_pixel(os.path.join(dir, i), image_h, image_w, method), class_dict[csv_dict[i]]
 
 @args_wrapper(
 	dir = "D:\\xunleiDownload\\RMB\\sp_data\\test",
 	label_csv = "D:\\xunleiDownload\\RMB\\train_face_value_label.csv",
 	image_h = 224,
-	image_w = 224)
-def test_data_gen(dir, label_csv, image_h, image_w):
+	image_w = 224,
+	method = "RANDOM_CROP")
+def test_data_gen(dir, label_csv, image_h, image_w, method):
 	
 	classes = ["0.1", "0.2", "0.5", "1", "2", "5", "10", "20", "50", "100"]
 	NUM_CLASSES = len(classes)
@@ -110,7 +113,7 @@ def test_data_gen(dir, label_csv, image_h, image_w):
 
 	for i in os.listdir(dir):
 
-		yield get_pixel(os.path.join(dir, i), image_h, image_w), class_dict[csv_dict[i]]
+		yield get_pixel(os.path.join(dir, i), image_h, image_w, method), class_dict[csv_dict[i]]
 
 def get_pixel(src, image_h, image_w, method = "RESIZE"):
 
@@ -120,12 +123,19 @@ def get_pixel(src, image_h, image_w, method = "RESIZE"):
 
 		return im/255.0
 
-	elif method == "RANDOM_CUT":
-		raise ValueError("Have not set up this method!")
+	elif method == "RANDOM_CROP":
+		#raise ValueError("Have not set up this method!")
+		im = cv2.imread(src)
+		height, width, _ = im.shape
+		#print(height, width)
 
+		if height < image_h or width < image_w:
+			raise ValueError("the picture is too small to crop.")
 
+		start_h = np.random.randint(height - image_h)
+		start_w = np.random.randint(width - image_w)
 
-
+		return im[start_h: start_h + image_h, start_w: start_w + image_w, :]/255.0
 
 
 
@@ -136,4 +146,8 @@ if __name__ == "__main__":
 
 		train_dir = "D:\\xunleiDownload\\RMB\\train_data\\"
 		dst_dir = "D:\\xunleiDownload\\RMB\\sp_data"
-		split_train_test(train_dir, dst_dir)
+		test_pic = "D:\\xunleiDownload\\RMB\\sp_data\\train\\0A2PDULI.jpg"
+		new = get_pixel(test_pic, 224, 224, "RANDOM_CROP")
+		cv2.imshow("imshow", new)
+		cv2.waitKey(0)
+		cv2.destroyAllWindows()

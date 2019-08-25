@@ -1,5 +1,5 @@
 import tensorflow as tf
-import cv2
+import time
 import os
 import model
 from input_data import train_data_gen, test_data_gen
@@ -13,32 +13,13 @@ IMAGE_W = 224
 CHANNEL = 3
 TEST_NUM = 2000
 TEST_BATCH = 100
-MAXSTEP = 10000
+MAXSTEP = 100
 CHECK_STEP = 10
 NUM_CLASSES = 10
 
 train_dir = "D:\\xunleiDownload\\RMB\\train_data\\"
 label_csv = "D:\\xunleiDownload\\RMB\\train_face_value_label.csv"
 
-'''
-def args_wrapper(*args, **kwargs):
-	def outer_wrapper(fun):
-		def inner_wrapper():
-			return fun(*args, **kwargs)
-		return inner_wrapper
-	return outer_wrapper
-
-@args_wrapper(xs = train_data_list, labels = train_label_list, image_h = IMAGE_H, image_w = IMAGE_W)
-def data_gen(xs, labels, image_h, image_w):
-	
-	for x, y in zip(xs, labels):
-
-		im = cv2.imread(x)
-		data = cv2.resize(im, (image_h, image_w))
-		label = [1 if i == y else 0 for i in range(NUM_CLASSES)]
-		#regularization.
-		yield data/255, label
-'''
 train_dataset = tf.data.Dataset.from_generator(train_data_gen, output_types = (tf.float32, tf.int32))
 train_dataset = train_dataset.shuffle(100).batch(BATCH_SIZE).repeat()
 train_iterator = train_dataset.make_one_shot_iterator()
@@ -71,8 +52,10 @@ history["test_acc"] = []
 with tf.Session() as sess:
 
 	sess.run(tf.global_variables_initializer())
+	time_cost = 0
+	start_time = time.time()
 
-	for step in range(1, 100 + 1):
+	for step in range(1, MAXSTEP + 1):
 
 		train_data, train_labels = sess.run((next_train_data, next_train_label))
 		_, train_loss, train_acc = sess.run((train_op, loss_op, acc_op), feed_dict = {X: train_data, Y: train_labels})
@@ -86,6 +69,9 @@ with tf.Session() as sess:
 		history["test_acc"].append(test_acc)
 
 		if step%CHECK_STEP == 0:
-			print("Step %d, train loss: %.2f, train acc: %.2f%%, test loss: %.2f, test_acc: %.2f%%." % (step, train_loss, train_acc*100, test_loss, test_acc*100))
+			end_time = time.time()
+			time_cost = end_time - start_time
+			print("Step %d, time cost: %.1f, train loss: %.2fs, train acc: %.2f%%, test loss: %.2f, test_acc: %.2f%%." % (step, time_cost, train_loss, train_acc*100, test_loss, test_acc*100))
+			start_time = time.time()
 
 show_result(history)
