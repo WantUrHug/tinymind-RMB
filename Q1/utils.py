@@ -1,12 +1,12 @@
 import matplotlib.pyplot as plt
 
-def show_result(history):
+def show_result(history, steps = 1):
 	'''
 	在训练时会用一个名为history的字典来储存每一个mini-batch的训练误差、训练准确率、
 	验证误差和验证准确率，现在就是利用这个history来画图，从图像中更好的显示训练的过程
 	'''
 
-	steps = range(len(history["train_loss"]))
+	steps = range(1, len(history["train_loss"])*steps + 1, steps)
 	test_flag = True
 
 	#检查一下其中是否有验证的结果，来决定我们后续的画图.入股有验证的结果，那就

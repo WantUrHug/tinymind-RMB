@@ -61,22 +61,21 @@ with tf.Session() as sess:
 	for step in range(1, MAXSTEP + 1):
 
 		train_data, train_labels = sess.run((next_train_data, next_train_label))
-		_, train_loss, train_acc = sess.run((train_op, loss_op, acc_op), feed_dict = {X: train_data, Y: train_labels})
-		history["train_loss"].append(train_loss)
-		history["train_acc"].append(train_acc)
-
-
-		test_data, test_labels = sess.run((next_test_data, next_test_label))
-		test_loss, test_acc = sess.run((loss_op, acc_op), feed_dict = {X: test_data, Y: test_labels})
-		history["test_loss"].append(test_loss)
-		history["test_acc"].append(test_acc)
+		sess.run(train_op,  feed_dict = {X: train_data, Y: train_labels})
 
 		if step%CHECK_STEP == 0:
-			end_time = time.time()
-			time_cost = end_time - start_time
-			print("Step %d, time cost: %.1fs, train loss: %.2f, train acc: %.2f%%, test loss: %.2f, test_acc: %.2f%%." % (step, time_cost, train_loss, train_acc*100, test_loss, test_acc*100))
-			start_time = time.time()
+			train_loss, train_acc = sess.run((loss_op, acc_op), feed_dict = {X: train_data, Y: train_labels})
+			history["train_loss"].append(train_loss)
+			history["train_acc"].append(train_acc)
 
-	saver.save(sess, os.path.join(model_dir, "model_random_crop.ckpt"))
 
-show_result(history)
+			test_data, test_labels = sess.run((next_test_data, next_test_label))
+			test_loss, test_acc = sess.run((loss_op, acc_op), feed_dict = {X: test_data, Y: test_labels})
+			history["test_loss"].append(test_loss)
+			history["test_acc"].append(test_acc)
+
+			print("Step %d, train loss: %.2f, train acc: %.2f%%, test loss: %.2f, test_acc: %.2f%%." % (step, train_loss, train_acc*100, test_loss, test_acc*100))
+
+	saver.save(sess, os.path.join(model_dir, "random_crop.ckpt"))
+
+show_result(history, )

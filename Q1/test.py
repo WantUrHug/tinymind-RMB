@@ -2,7 +2,7 @@ import tensorflow as tf
 import os
 
 model_dir = "D:\\GitFile\\RMB\\Q1\\model"
-model = os.path.join(model_dir, "model_random_crop.ckpt")
+model = os.path.join(model_dir, "random_crop.ckpt")
 
 saver = tf.train.Saver()
 
