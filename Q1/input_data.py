@@ -3,7 +3,9 @@ import os
 import shutil
 from pprint import pprint
 import cv2
-from tensorflow import random_crop
+
+IMAGE_H = 224
+IMAGE_W = 224
 
 def split_train_test(src, dst, test_size = 0.1):
 	'''
@@ -49,8 +51,8 @@ def args_wrapper(*args, **kwargs):
 @args_wrapper(
 	dir = "D:\\xunleiDownload\\RMB\\sp_data\\train",
 	label_csv = "D:\\xunleiDownload\\RMB\\train_face_value_label.csv",
-	image_h = 224,
-	image_w = 224,
+	image_h = IMAGE_H,
+	image_w = IMAGE_W,
 	method = "RANDOM_CROP")
 def train_data_gen(dir, label_csv, image_h, image_w, method):
 	
@@ -75,8 +77,8 @@ def train_data_gen(dir, label_csv, image_h, image_w, method):
 @args_wrapper(
 	dir = "D:\\xunleiDownload\\RMB\\sp_data\\test",
 	label_csv = "D:\\xunleiDownload\\RMB\\train_face_value_label.csv",
-	image_h = 224,
-	image_w = 224,
+	image_h = IMAGE_H,
+	image_w = IMAGE_W,
 	method = "RANDOM_CROP")
 def test_data_gen(dir, label_csv, image_h, image_w, method):
 	
@@ -95,8 +97,6 @@ def test_data_gen(dir, label_csv, image_h, image_w, method):
 	for i in os.listdir(dir):
 
 		yield get_pixel(os.path.join(dir, i), image_h, image_w, method), class_dict[csv_dict[i]]
-
-
 
 def get_pixel(src, image_h, image_w, method = "RESIZE"):
 	'''
@@ -130,9 +130,18 @@ def get_pixel(src, image_h, image_w, method = "RESIZE"):
 		return im[start_h: start_h + image_h, start_w: start_w + image_w, :]/255.0
 
 
-
-
-
+def one2batchbyRANDOMCROP(test_dir, batch_size = 10, image_h = IMAGE_H, image_w = IMAGE_W, channels = 3):
+	'''
+	专为训练数据准备的，在随机裁剪的条件下，把一张照片每次切一个224x224出来，组成一个batch，给
+	进去网络里，会出来batch个结果，选择其中投票次数高的作为该图片最终的输出结果
+	建议写成生成器的形式，没有必要再用dataset来写，直接用一个for循环即可
+	生成的内容为图片名+batch数据
+	'''
+	for img_name in os.listdir(test_dir):
+		data = np.zeros([batch_size, image_h, image_w, channels])
+		for i in range(batch_size):
+			data[i] = get_pixel(os.path.join(test_dir, img_name), image_h, image_w, "RANDOM_CROP")
+		yield img_name, data
 
 if __name__ == "__main__":
 

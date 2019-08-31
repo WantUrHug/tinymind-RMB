@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import os
 
 def show_result(history, steps = 1):
 	'''
@@ -32,3 +33,38 @@ def show_result(history, steps = 1):
 
 	plt.legend()
 	plt.show()
+
+def save_his_csv(history = None, filename = None, step = 1, filepath = "D:\\GitFile\\RMB\\Q1\\csv\\"):
+
+	with open(os.path.join(filepath, filename), "w") as f:
+		try:
+			history["test_loss"]
+		except KeyError:
+			head = ",".join(["step", "train loss", "train acc"])
+			head += "\n"
+			#print(head)
+			f.writelines(head)
+		else:
+			head = ",".join(["step", "train loss", "train acc", "test loss", "test acc"])
+			head += "\n"
+			#print(head)
+			f.write(head)
+			l = len(history["train_loss"])
+
+			for i in range(l):
+				content = ",".join(map(str, [step*(i+1), history["train_loss"][i], history["train_acc"][i], history["test_loss"][i], history["test_acc"][i]]))
+				content += "\n"
+				#print(content)
+				f.write(content)
+
+
+if __name__ == "__main__":
+
+	history = {}
+
+	history["train_loss"] = [1,2,3,4,5]
+	history["test_loss"] = [2,3,4,5,6]
+	history["train_acc"] = [3,4,5,6,7]
+	history["test_acc"] = [4,5,6,7,8]
+
+	save_his_csv(history)
