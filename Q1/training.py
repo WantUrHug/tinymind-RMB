@@ -11,16 +11,18 @@ BATCH_SIZE = 128
 IMAGE_H = 224
 IMAGE_W = 224
 CHANNEL = 3
-#TEST_NUM = 2000
 TEST_BATCH = 100
-MAXSTEP = 50
-CHECK_STEP = 2000
+MAXSTEP = 2000
+CHECK_STEP = 50
 SAVE_STEP = 200
 NUM_CLASSES = 10
 
 train_dir = "D:\\xunleiDownload\\RMB\\train_data\\"
 label_csv = "D:\\xunleiDownload\\RMB\\train_face_value_label.csv"
-model_dir = "D:\\GitFile\\RMB\\Q1\\model"
+model_dir = "D:\\xunleiDownload\\RMB\\resize_model"
+
+if not os.path.exists(model_dir):
+	os.mkdir(model_dir)
 
 train_dataset = tf.data.Dataset.from_generator(train_data_gen, output_types = (tf.float32, tf.int32))
 train_dataset = train_dataset.shuffle(100).batch(BATCH_SIZE).repeat()
@@ -54,20 +56,26 @@ tf.add_to_collection("train_op", train_op)
 tf.add_to_collection("loss_op", loss_op)
 tf.add_to_collection("acc_op", acc_op)
 
-
+'''
 history = {}
 history["train_loss"] = []
 history["test_loss"] = []
 history["train_acc"] = []
 history["test_acc"] = []
+'''
 
 with tf.Session() as sess:
 
-	saver = tf.train.Saver(max_to_save = 3)
+	saver = tf.train.Saver(max_to_keep = 3)
 
 	sess.run(tf.global_variables_initializer())
+	
+	tf.train.Saver().save(sess, os.path.join(model_dir, "random_crop"))
+
 	time_cost = 0
 	start_time = time.time()
+
+
 
 	for step in range(1, MAXSTEP + 1):
 
@@ -92,7 +100,7 @@ with tf.Session() as sess:
 			start_time = time.time()
 
 		if step%SAVE_STEP == 0:
-			saver.save(sess, os.path.join(model_dir, "random_crop"), global_step = step)			
+			saver.save(sess, os.path.join(model_dir, "random_crop"), global_step = step, write_meta_graph = False)			
 
 	#saver.save(sess, os.path.join(model_dir, "random_crop"), global_step = MAXSTEP)
 

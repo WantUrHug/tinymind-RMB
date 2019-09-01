@@ -29,7 +29,7 @@ def loss(logits, labels):
 def train(loss, lr):
 	#训练句柄
 	global_step = tf.Variable(0, trainable = False)
-	return tf.train.GradientDescentOptimizer(lr).minimize(loss, global_step = global_step)
+	return tf.train.AdamOptimizer(lr).minimize(loss, global_step = global_step)
 
 def evaluation(logits, labels):
 	#评价结果

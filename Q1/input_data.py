@@ -53,7 +53,7 @@ def args_wrapper(*args, **kwargs):
 	label_csv = "D:\\xunleiDownload\\RMB\\train_face_value_label.csv",
 	image_h = IMAGE_H,
 	image_w = IMAGE_W,
-	method = "RANDOM_CROP")
+	method = "RESIZE")
 def train_data_gen(dir, label_csv, image_h, image_w, method):
 	
 	#一共有10类，创建一个字典来把面值转化成稀疏向量表示
@@ -79,7 +79,7 @@ def train_data_gen(dir, label_csv, image_h, image_w, method):
 	label_csv = "D:\\xunleiDownload\\RMB\\train_face_value_label.csv",
 	image_h = IMAGE_H,
 	image_w = IMAGE_W,
-	method = "RANDOM_CROP")
+	method = "RESIZE")
 def test_data_gen(dir, label_csv, image_h, image_w, method):
 	
 	#同train_data_gen.
@@ -140,7 +140,7 @@ def one2batchbyRANDOMCROP(test_dir, batch_size = 10, image_h = IMAGE_H, image_w 
 	for img_name in os.listdir(test_dir):
 		data = np.zeros([batch_size, image_h, image_w, channels])
 		for i in range(batch_size):
-			data[i] = get_pixel(os.path.join(test_dir, img_name), image_h, image_w, "RANDOM_CROP")
+			data[i] = get_pixel(os.path.join(test_dir, img_name), image_h, image_w)
 		yield img_name, data
 
 if __name__ == "__main__":
