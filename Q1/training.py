@@ -7,14 +7,15 @@ from utils import show_result
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
+#定义常数
 BATCH_SIZE = 128
 IMAGE_H = 224
 IMAGE_W = 224
 CHANNEL = 3
 TEST_BATCH = 100
-MAXSTEP = 2000
+MAXSTEP = 500
 CHECK_STEP = 50
-SAVE_STEP = 200
+SAVE_STEP = 100
 NUM_CLASSES = 10
 
 train_dir = "D:\\xunleiDownload\\RMB\\train_data\\"
@@ -47,7 +48,7 @@ Y = tf.placeholder(tf.int32, [None, NUM_CLASSES], name = "Y")
 outputs = model.inference(X, 10	)
 tf.add_to_collection("outputs", outputs)
 
-
+#各种句柄都要添加到图中
 loss_op = model.loss(logits = outputs, labels = Y)
 train_op = model.train(loss = loss_op, lr = 0.001)
 acc_op = model.evaluation(logits = outputs, labels = Y)
@@ -70,7 +71,7 @@ with tf.Session() as sess:
 
 	sess.run(tf.global_variables_initializer())
 	
-	tf.train.Saver().save(sess, os.path.join(model_dir, "random_crop"))
+	tf.train.Saver().save(sess, os.path.join(model_dir, "resize"))
 
 	time_cost = 0
 	start_time = time.time()
@@ -86,21 +87,22 @@ with tf.Session() as sess:
 
 			train_loss, train_acc = sess.run((loss_op, acc_op), feed_dict = {X: train_data, Y: train_labels})
 		
-			test_data, test_labels = sess.run((next_test_data, next_test_label))
-			test_loss, test_acc = sess.run((loss_op, acc_op), feed_dict = {X: test_data, Y: test_labels})
+			#test_data, test_labels = sess.run((next_test_data, next_test_label))
+			#test_loss, test_acc = sess.run((loss_op, acc_op), feed_dict = {X: test_data, Y: test_labels})
 			
-			history["train_loss"].append(train_loss)
-			history["train_acc"].append(train_acc)
-			history["test_loss"].append(test_loss)
-			history["test_acc"].append(test_acc)
+			#history["train_loss"].append(train_loss)
+			#history["train_acc"].append(train_acc)
+			#history["test_loss"].append(test_loss)
+			#history["test_acc"].append(test_acc)
 			
 			time_cost = time.time() - start_time
 			
-			print("Step %d, time cost: %.1fs, train loss: %.2f, train acc: %.2f%%, test loss: %.2f, test_acc: %.2f%%." % (step, time_cost, train_loss, train_acc*100, test_loss, test_acc*100))
+			#print("Step %d, time cost: %.1fs, train loss: %.2f, train acc: %.2f%%, test loss: %.2f, test_acc: %.2f%%." % (step, time_cost, train_loss, train_acc*100, test_loss, test_acc*100))
+			print("Step %d, time cost: %.1fs, train loss: %.2f, train acc: %.2f%%." % (step, time_cost, train_loss, train_acc*100))
 			start_time = time.time()
 
 		if step%SAVE_STEP == 0:
-			saver.save(sess, os.path.join(model_dir, "random_crop"), global_step = step, write_meta_graph = False)			
+			saver.save(sess, os.path.join(model_dir, "resize"), global_step = step, write_meta_graph = False)			
 
 	#saver.save(sess, os.path.join(model_dir, "random_crop"), global_step = MAXSTEP)
 
