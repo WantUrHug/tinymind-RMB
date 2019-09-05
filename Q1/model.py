@@ -1,4 +1,5 @@
 import tensorflow as tf
+from tensorflow.layers import Conv2D, MaxPooling2D, Flatten, Dense
 
 def inference(inputs, num_classes):
 	#太深的网络定义了电脑跑不动，难受
@@ -13,13 +14,58 @@ def inference(inputs, num_classes):
 	
 	outputs = tf.layers.MaxPooling2D(pool_size = (2,2), strides = (2,2))(outputs)
 	
+	outputs = tf.layers.Conv2D(filters = 64, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
+	
+	outputs = tf.layers.MaxPooling2D(pool_size = (2,2), strides = (2,2))(outputs)
+
 	outputs = tf.layers.Flatten()(outputs)
 
-	outputs = tf.layers.Dense(512, activation = "relu")(outputs)
 	outputs = tf.layers.Dense(256, activation = "relu")(outputs)
+	outputs = tf.layers.Dense(64, activation = "relu")(outputs)
 	outputs = tf.layers.Dense(num_classes, activation = "relu")(outputs)
 
 	return outputs
+
+def Simple_VGG_19(inputs, num_classes):
+
+	outputs = Conv2D(filters = 64, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(inputs)
+	outputs = Conv2D(filters = 64, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
+	outputs = MaxPooling2D(pool_size = (2,2), strides = (2,2))(outputs)
+
+	outputs = Conv2D(filters = 128, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
+	outputs = Conv2D(filters = 128, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
+	outputs = MaxPooling2D(pool_size = (2,2), strides = (2,2))(outputs)
+
+	outputs = Conv2D(filters = 256, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
+	outputs = Conv2D(filters = 256, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
+	#outputs = Conv2D(filters = 256, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
+	#outputs = Conv2D(filters = 256, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
+	outputs = MaxPooling2D(pool_size = (2,2), strides = (2,2))(outputs)
+
+	outputs = Conv2D(filters = 512, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
+	outputs = Conv2D(filters = 512, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
+	#outputs = Conv2D(filters = 512, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
+	#outputs = Conv2D(filters = 512, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
+	outputs = MaxPooling2D(pool_size = (2,2), strides = (2,2))(outputs)
+
+	#outputs = Conv2D(filters = 512, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
+	#outputs = Conv2D(filters = 512, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
+	#outputs = Conv2D(filters = 512, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
+	#outputs = Conv2D(filters = 512, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
+	#outputs = MaxPooling2D(pool_size = (2,2), strides = (2,2))(outputs)
+
+	outputs = tf.layers.Flatten()(outputs)
+
+	#outputs = tf.layers.Dense(4096, activation = "relu")(outputs)
+	#outputs = tf.layers.Dense(4096, activation = "relu")(outputs)
+	#outputs = tf.layers.Dense(1000, activation = "relu")(outputs)
+	outputs = tf.layers.Dense(512, activation = "relu")(outputs)
+	outputs = tf.layers.Dense(512, activation = "relu")(outputs)
+	outputs = tf.layers.Dense(64, activation = "relu")(outputs)
+	outputs = tf.layers.Dense(num_classes, activation = "relu")(outputs)
+
+	return outputs
+
 
 def loss(logits, labels):
 	#损失函数
