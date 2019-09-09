@@ -3,10 +3,10 @@ import time
 import os
 import model
 from input_data import train_data_gen, test_data_gen
-from utils import show_result
+from utils import show_result, save_his_csv
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-
+#os.environ['CUDA_VISIBLE_DEVICES']='2,3'
 #定义常数
 BATCH_SIZE = 128
 IMAGE_H = 224
@@ -14,13 +14,13 @@ IMAGE_W = 224
 CHANNEL = 3
 TEST_BATCH = 100
 MAXSTEP = 500
-CHECK_STEP = 50
+CHECK_STEP = 20
 SAVE_STEP = 100
 NUM_CLASSES = 10
 
 train_dir = "D:\\xunleiDownload\\RMB\\train_data\\"
 label_csv = "D:\\xunleiDownload\\RMB\\train_face_value_label.csv"
-model_dir = "D:\\xunleiDownload\\RMB\\resize_model"
+model_dir = "D:\\xunleiDownload\\RMB\\randomcrop_model"
 
 if not os.path.exists(model_dir):
 	os.mkdir(model_dir)
@@ -45,7 +45,7 @@ X = tf.placeholder(tf.float32, [None, IMAGE_H, IMAGE_W, CHANNEL], name = "X")
 Y = tf.placeholder(tf.int32, [None, NUM_CLASSES], name = "Y")
 
 #定义一个操作添加到默认图之中，后续可以测试
-outputs = model.inference(X, 10	)
+outputs = model.inference(X, 10)
 tf.add_to_collection("outputs", outputs)
 
 #各种句柄都要添加到图中
@@ -57,26 +57,25 @@ tf.add_to_collection("train_op", train_op)
 tf.add_to_collection("loss_op", loss_op)
 tf.add_to_collection("acc_op", acc_op)
 
-'''
+
 history = {}
 history["train_loss"] = []
 history["test_loss"] = []
 history["train_acc"] = []
 history["test_acc"] = []
-'''
 
+#config=tf.ConfigProto(log_device_placement=True, allow_soft_placement=True)
+#只使用CPU进行计算
 with tf.Session() as sess:
 
 	saver = tf.train.Saver(max_to_keep = 3)
 
 	sess.run(tf.global_variables_initializer())
 	
-	tf.train.Saver().save(sess, os.path.join(model_dir, "resize"))
+	tf.train.Saver().save(sess, os.path.join(model_dir, "random_crop"))
 
 	time_cost = 0
 	start_time = time.time()
-
-
 
 	for step in range(1, MAXSTEP + 1):
 
@@ -87,23 +86,24 @@ with tf.Session() as sess:
 
 			train_loss, train_acc = sess.run((loss_op, acc_op), feed_dict = {X: train_data, Y: train_labels})
 		
-			#test_data, test_labels = sess.run((next_test_data, next_test_label))
-			#test_loss, test_acc = sess.run((loss_op, acc_op), feed_dict = {X: test_data, Y: test_labels})
+			test_data, test_labels = sess.run((next_test_data, next_test_label))
+			test_loss, test_acc = sess.run((loss_op, acc_op), feed_dict = {X: test_data, Y: test_labels})
 			
-			#history["train_loss"].append(train_loss)
-			#history["train_acc"].append(train_acc)
-			#history["test_loss"].append(test_loss)
-			#history["test_acc"].append(test_acc)
+			history["train_loss"].append(train_loss)
+			history["train_acc"].append(train_acc)
+			history["test_loss"].append(test_loss)
+			history["test_acc"].append(test_acc)
 			
 			time_cost = time.time() - start_time
 			
-			#print("Step %d, time cost: %.1fs, train loss: %.2f, train acc: %.2f%%, test loss: %.2f, test_acc: %.2f%%." % (step, time_cost, train_loss, train_acc*100, test_loss, test_acc*100))
-			print("Step %d, time cost: %.1fs, train loss: %.2f, train acc: %.2f%%." % (step, time_cost, train_loss, train_acc*100))
+			print("Step %d, time cost: %.1fs, train loss: %.2f, train acc: %.2f%%, test loss: %.2f, test_acc: %.2f%%." % (step, time_cost, train_loss, train_acc*100, test_loss, test_acc*100))
+			#print("Step %d, time cost: %.1fs, train loss: %.2f, train acc: %.2f%%." % (step, time_cost, train_loss, train_acc*100))
 			start_time = time.time()
 
 		if step%SAVE_STEP == 0:
-			saver.save(sess, os.path.join(model_dir, "resize"), global_step = step, write_meta_graph = False)			
+			saver.save(sess, os.path.join(model_dir, "random_crop"), global_step = step, write_meta_graph = False)			
 
 	#saver.save(sess, os.path.join(model_dir, "random_crop"), global_step = MAXSTEP)
 
 #show_result(history)
+save_his_csv(history, '1')

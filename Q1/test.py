@@ -4,12 +4,12 @@ import numpy as np
 import utils
 from input_data import get_pixel, one2batchbyRANDOMCROP
 
-model_dir = "D:\\xunleiDownload\\RMB\\model"
-#这个py文件中的投票方法只适用于RANDOM_CROP，不适用于RESIZE
-model = os.path.join(model_dir, "random_crop")
+model_dir = "D:\\xunleiDownload\\RMB\\GPUrandomcrop_model"
+#这个py文件中的投票方法只适用于RANDOM_CROP，不适用于RESIZE!
+#model = os.path.join(model_dir, "GPUrandomcrop_model")
 
 test_dir = "D:\\xunleiDownload\\RMB\\public_test_data\\public_test_data"
-test_label = "D:\\xunleiDownload\\RMB\\test_label.csv"
+test_label = "D:\\xunleiDownload\\RMB\\test_label1.csv"
 
 ckpt = tf.train.get_checkpoint_state(model_dir)
 
@@ -27,7 +27,7 @@ def most_in_index(index):
 			max = i
 	return max
 
-with tf.Session() as sess:
+with tf.Session(config=tf.ConfigProto(log_device_placement = False, allow_soft_placement = True)) as sess:
 
 	#加载最新的模型参数
 	lastest_model = ckpt.model_checkpoint_path
@@ -55,6 +55,7 @@ with tf.Session() as sess:
 	#结果中的数字所代表的数字
 	classes = ["0.1", "0.2", "0.5", "1", "2", "5", "10", "20", "50", "100"]
 
+	num = 0
 	for name, data in one2batchbyRANDOMCROP(test_dir):
 		
 		res = sess.run(outputs_op, feed_dict = {X: np.array(data)})
@@ -62,5 +63,7 @@ with tf.Session() as sess:
 		#print(index)
 		index = most_in_index(index)
 		f.writelines(",".join([name, classes[index]]) + "\n")
-
+		num += 1
+		if num%1000 == 0:
+			print("Had processing %d pictures"%num)
 	f.close()

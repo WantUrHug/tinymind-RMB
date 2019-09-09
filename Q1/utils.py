@@ -34,7 +34,7 @@ def show_result(history, steps = 1):
 	plt.legend()
 	plt.show()
 
-def save_his_csv(history = None, filename = None, step = 1, filepath = "D:\\GitFile\\RMB\\Q1\\csv\\"):
+def save_his_csv(history, filename = None, step = 1, filepath = "D:\\GitFile\\RMB\\Q1\\csv\\"):
 
 	with open(os.path.join(filepath, filename), "w") as f:
 		try:

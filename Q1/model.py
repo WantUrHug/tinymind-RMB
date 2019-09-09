@@ -28,12 +28,12 @@ def inference(inputs, num_classes):
 
 def Simple_VGG_19(inputs, num_classes):
 
-	outputs = Conv2D(filters = 64, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(inputs)
-	outputs = Conv2D(filters = 64, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
+	outputs = Conv2D(filters = 32, kernel_size = (4,4), strides = (2,2), activation = "relu", padding = "VALID")(inputs)
+	outputs = Conv2D(filters = 64, kernel_size = (4,4), strides = (2,2), activation = "relu", padding = "VALID")(outputs)
 	outputs = MaxPooling2D(pool_size = (2,2), strides = (2,2))(outputs)
 
-	outputs = Conv2D(filters = 128, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
-	outputs = Conv2D(filters = 128, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
+	outputs = Conv2D(filters = 64, kernel_size = (4,4), strides = (2,2), activation = "relu", padding = "SAME")(outputs)
+	outputs = Conv2D(filters = 64, kernel_size = (4,4), strides = (2,2), activation = "relu", padding = "SAME")(outputs)
 	outputs = MaxPooling2D(pool_size = (2,2), strides = (2,2))(outputs)
 
 	outputs = Conv2D(filters = 256, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
