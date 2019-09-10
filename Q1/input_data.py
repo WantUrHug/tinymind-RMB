@@ -122,7 +122,10 @@ def get_pixel(src, image_h, image_w, method = "RESIZE"):
 		height, width, _ = im.shape
 
 		if height < image_h or width < image_w:
-			raise ValueError("the picture is too small to crop.")
+			#不可避免可能有一些图片是残缺的，尺寸太小，此时抛出异常并不能解决问题，
+			#要把太小的不能随机截取的图片用RESIZE的方法处理
+			#raise ValueError("the picture is too small to crop.")
+			return cv2.resize(im, (image_h, image_w))/255.0
 
 		start_h = np.random.randint(height - image_h)
 		start_w = np.random.randint(width - image_w)
@@ -140,9 +143,43 @@ def one2batchbyRANDOMCROP(test_dir, batch_size = 10, image_h = IMAGE_H, image_w 
 	for img_name in os.listdir(test_dir):
 		data = np.zeros([batch_size, image_h, image_w, channels])
 		for i in range(batch_size):
-			data[i] = get_pixel(os.path.join(test_dir, img_name), image_h, image_w)
+			data[i] = get_pixel(os.path.join(test_dir, img_name), image_h, image_w, method = "RANDOM_CROP")
 		yield img_name, data
 
+def batch2batchbyRANDOMCROP(test_dir, img_num = 16, batch_size = 10, image_h = IMAGE_H, image_w = IMAGE_W, channels = 3):
+	'''
+	专为训练数据准备的，在随机裁剪的条件下，把一张照片每次切一个224x224出来，组成一个batch，给
+	进去网络里，会出来batch个结果，选择其中投票次数高的作为该图片最终的输出结果
+	建议写成生成器的形式。但是每次只有一张照片，测试的效率太低，使用CPU训练需要10个小时，而即使是
+	使用GPU也是要两个半小时左右，需要这个函数相比one2batchbyRANDOMCROP，每次会处理img_num张照片，也就是
+	每次喂给训练完成的模型img_num*batch_size个随机截取的图片，提高整体的测试效率。
+	'''
+
+	name_list = os.listdir(test_dir)
+	total = len(name_list)
+	if total%img_num == 0:
+		epcohs = int(total/img_num)
+		for i in range(epcohs):
+			img_names = name_list[i*img_num: (i + 1)*img_num]
+			data = np.zeros([img_num*batch_size, image_h, image_w, channels])
+			for j in range(img_num):
+				data[j] = get_pixel(os.path.join(test_dir, img_names[j]), image_h, image_w, method = "RANDOM_CROP")
+			yield img_names, data
+	else: # total%img_num != 0
+		epcohs = total//img_num
+		for i in range(epcohs):
+			img_names = name_list[i*img_num, (i + 1)*img_num]
+			data = np.zeros([img_num*batch_size, image_h, image_w, channels])
+			for j in range(img_num):
+				data[i*epcohs + j] = get_pixel(os.path.join(test_dir, img_name), image_h, image_w, method = "RANDOM_CROP")
+			yield name_list, data
+		name_remainder = name_list[epcohs*img_num:]
+		size_remainder = len(name_remainder)
+		print("Remainder size is %d."%size_remainder)
+		data = np.zeros([size_remainder*batch_size, image_h, image_w, channels])
+		for i, j in enumerata(name_remainder):
+			data[i] = get_pixel(os.path.join(test_dir, img_name), image_h, image_w, method = "RANDOM_CROP")
+		yield name_remainder, data
 if __name__ == "__main__":
 
 		#观察缩放的效果
