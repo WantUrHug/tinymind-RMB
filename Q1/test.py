@@ -2,7 +2,7 @@ import tensorflow as tf
 import os
 import numpy as np
 import utils
-from input_data import get_pixel, one2batchbyRANDOMCROP
+from input_data import get_pixel, one2batchbyRANDOMCROP, batch2batchbyRANDOMCROP
 
 model_dir = "D:\\xunleiDownload\\RMB\\GPUrandomcrop_model"
 #这个py文件中的投票方法只适用于RANDOM_CROP，不适用于RESIZE!
@@ -56,14 +56,19 @@ with tf.Session(config=tf.ConfigProto(log_device_placement = False, allow_soft_p
 	classes = ["0.1", "0.2", "0.5", "1", "2", "5", "10", "20", "50", "100"]
 
 	num = 0
-	for name, data in one2batchbyRANDOMCROP(test_dir):
-		
+	IMG_NUM = 4
+	BATCH_SIZE = 10
+	for name_list, data in batch2batchbyRANDOMCROP(test_dir, img_num = IMG_NUM, batch_size = BATCH_SIZE):
+		#print(len(name_list))
 		res = sess.run(outputs_op, feed_dict = {X: np.array(data)})
-		index = sess.run(tf.argmax(res, 1))
-		#print(index)
-		index = most_in_index(index)
-		f.writelines(",".join([name, classes[index]]) + "\n")
-		num += 1
-		if num%1000 == 0:
-			print("Had processing %d pictures"%num)
+		result_size = len(name_list)
+		for i in range(result_size):
+			index = sess.run(tf.argmax(res[i*BATCH_SIZE: (i+1)*BATCH_SIZE], 1))
+			#print(index.shape)
+			#print(index)
+			index = most_in_index(index)
+			f.writelines(",".join([name_list[i], classes[index]]) + "\n")
+			num += 1
+			if num%500 == 0:
+				print("Had processing %d pictures"%num)
 	f.close()
