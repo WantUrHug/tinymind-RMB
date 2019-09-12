@@ -53,7 +53,7 @@ def args_wrapper(*args, **kwargs):
 	label_csv = "D:\\xunleiDownload\\RMB\\train_face_value_label.csv",
 	image_h = IMAGE_H,
 	image_w = IMAGE_W,
-	method = "RESIZE")
+	method = "RANDOM_CROP")
 def train_data_gen(dir, label_csv, image_h, image_w, method):
 	
 	#一共有10类，创建一个字典来把面值转化成稀疏向量表示
@@ -79,7 +79,7 @@ def train_data_gen(dir, label_csv, image_h, image_w, method):
 	label_csv = "D:\\xunleiDownload\\RMB\\train_face_value_label.csv",
 	image_h = IMAGE_H,
 	image_w = IMAGE_W,
-	method = "RESIZE")
+	method = "RANDOM_CROP")
 def test_data_gen(dir, label_csv, image_h, image_w, method):
 	
 	#同train_data_gen.
@@ -146,7 +146,7 @@ def one2batchbyRANDOMCROP(test_dir, batch_size = 10, image_h = IMAGE_H, image_w 
 			data[i] = get_pixel(os.path.join(test_dir, img_name), image_h, image_w, method = "RANDOM_CROP")
 		yield img_name, data
 
-def batch2batchbyRANDOMCROP(test_dir, img_num = 16, batch_size = 10, image_h = IMAGE_H, image_w = IMAGE_W, channels = 3):
+def batch2batchbyRANDOMCROP(test_dir, img_num = 4, batch_size = 10, image_h = IMAGE_H, image_w = IMAGE_W, channels = 3):
 	'''
 	专为训练数据准备的，在随机裁剪的条件下，把一张照片每次切一个224x224出来，组成一个batch，给
 	进去网络里，会出来batch个结果，选择其中投票次数高的作为该图片最终的输出结果
@@ -156,14 +156,15 @@ def batch2batchbyRANDOMCROP(test_dir, img_num = 16, batch_size = 10, image_h = I
 	'''
 
 	name_list = os.listdir(test_dir)
-	total = len(name_list)
-	if total%img_num == 0:
-		epcohs = int(total/img_num)
+	total = len(name_list) #20000
+	if total%img_num == 0: #20000%4=0
+		epcohs = int(total/img_num) #epochs=5000
 		for i in range(epcohs):
 			img_names = name_list[i*img_num: (i + 1)*img_num]
 			data = np.zeros([img_num*batch_size, image_h, image_w, channels])
 			for j in range(img_num):
-				data[j] = get_pixel(os.path.join(test_dir, img_names[j]), image_h, image_w, method = "RANDOM_CROP")
+				for k in range(batch_size):
+					data[j*batch_size + k] = get_pixel(os.path.join(test_dir, img_names[j]), image_h, image_w, method = "RANDOM_CROP")
 			yield img_names, data
 	else: # total%img_num != 0
 		epcohs = total//img_num
@@ -171,8 +172,9 @@ def batch2batchbyRANDOMCROP(test_dir, img_num = 16, batch_size = 10, image_h = I
 			img_names = name_list[i*img_num, (i + 1)*img_num]
 			data = np.zeros([img_num*batch_size, image_h, image_w, channels])
 			for j in range(img_num):
-				data[i*epcohs + j] = get_pixel(os.path.join(test_dir, img_name), image_h, image_w, method = "RANDOM_CROP")
-			yield name_list, data
+				for k in range(batch_size):
+					data[j] = get_pixel(os.path.join(test_dir, img_name), image_h, image_w, method = "RANDOM_CROP")
+			yield img_names, data
 		name_remainder = name_list[epcohs*img_num:]
 		size_remainder = len(name_remainder)
 		print("Remainder size is %d."%size_remainder)
@@ -180,13 +182,12 @@ def batch2batchbyRANDOMCROP(test_dir, img_num = 16, batch_size = 10, image_h = I
 		for i, j in enumerata(name_remainder):
 			data[i] = get_pixel(os.path.join(test_dir, img_name), image_h, image_w, method = "RANDOM_CROP")
 		yield name_remainder, data
+		
 if __name__ == "__main__":
 
 		#观察缩放的效果
 		train_dir = "D:\\xunleiDownload\\RMB\\train_data\\"
 		dst_dir = "D:\\xunleiDownload\\RMB\\sp_data"
-		test_pic = "D:\\xunleiDownload\\RMB\\sp_data\\train\\0A2PDULI.jpg"
-		new = get_pixel(test_pic, 224, 224, "RANDOM_CROP")
-		cv2.imshow("imshow", new)
-		cv2.waitKey(0)
-		cv2.destroyAllWindows()
+		test_dir = "D:\\xunleiDownload\\RMB\\public_test_data\\public_test_data"
+		for name_list, data in batch2batchbyRANDOMCROP(test_dir):
+			print(data[1])

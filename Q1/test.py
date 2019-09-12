@@ -80,9 +80,6 @@ with tf.Session(config=tf.ConfigProto(log_device_placement = False, allow_soft_p
 			id = most_in_index(final[i*BATCH_SIZE: (i+1)*BATCH_SIZE])
 			print(id)
 			f.writelines(",".join([name_list[i], classes[id]]) + "\n")
-			num += 1
-			if num > 3:
-				break
 			if num%500 == 0:
 				print("Had processing %d pictures"%num, end = ".")
 				end_time = time.time()
