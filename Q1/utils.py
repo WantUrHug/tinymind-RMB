@@ -34,8 +34,10 @@ def show_result(history, steps = 1):
 	plt.legend()
 	plt.show()
 
-def save_his_csv(history, filename = None, step = 1, filepath = "D:\\GitFile\\RMB\\Q1\\csv\\"):
-
+def save_his_csv(history, filename = None, step = 1, filepath = "D:\\GitFile\\RMB\\Q1\\"):
+	'''
+	将训练过程中的训练误差、训练精度、验证误差和验证精度都保存成csv，可以在程序结束之后通过csv查看
+	'''
 	with open(os.path.join(filepath, filename), "w") as f:
 		try:
 			history["test_loss"]
@@ -57,11 +59,21 @@ def save_his_csv(history, filename = None, step = 1, filepath = "D:\\GitFile\\RM
 				#print(content)
 				f.write(content)
 
+class csvHelper():
+
+	def __init__(self, path):
+		self.path = path
+
+	def writelines(self, char, type = "a+"):
+		#默认是续写，type="w"时是重写
+		file = open(self.path, type)
+		file.writelines(char)
+		file.close()
 
 if __name__ == "__main__":
 
+	#简单测试代码可行性
 	history = {}
-
 	history["train_loss"] = [1,2,3,4,5]
 	history["test_loss"] = [2,3,4,5,6]
 	history["train_acc"] = [3,4,5,6,7]
