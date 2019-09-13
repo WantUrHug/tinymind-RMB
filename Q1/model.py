@@ -28,22 +28,22 @@ def inference(inputs, num_classes):
 
 def Simple_VGG_19(inputs, num_classes):
 
-	outputs = Conv2D(filters = 32, kernel_size = (4,4), strides = (2,2), activation = "relu", padding = "VALID")(inputs)
-	outputs = Conv2D(filters = 64, kernel_size = (4,4), strides = (2,2), activation = "relu", padding = "VALID")(outputs)
+	outputs = Conv2D(filters = 32, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(inputs)
+	outputs = Conv2D(filters = 32, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
 	outputs = MaxPooling2D(pool_size = (2,2), strides = (2,2))(outputs)
 
-	outputs = Conv2D(filters = 64, kernel_size = (4,4), strides = (2,2), activation = "relu", padding = "SAME")(outputs)
-	outputs = Conv2D(filters = 64, kernel_size = (4,4), strides = (2,2), activation = "relu", padding = "SAME")(outputs)
+	outputs = Conv2D(filters = 64, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
+	outputs = Conv2D(filters = 64, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
 	outputs = MaxPooling2D(pool_size = (2,2), strides = (2,2))(outputs)
 
-	outputs = Conv2D(filters = 256, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
-	outputs = Conv2D(filters = 256, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
+	outputs = Conv2D(filters = 128, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
+	outputs = Conv2D(filters = 128, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
 	#outputs = Conv2D(filters = 256, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
 	#outputs = Conv2D(filters = 256, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
 	outputs = MaxPooling2D(pool_size = (2,2), strides = (2,2))(outputs)
 
-	outputs = Conv2D(filters = 512, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
-	outputs = Conv2D(filters = 512, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
+	outputs = Conv2D(filters = 256, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
+	outputs = Conv2D(filters = 256, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
 	#outputs = Conv2D(filters = 512, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
 	#outputs = Conv2D(filters = 512, kernel_size = (3,3), strides = (1,1), activation = "relu", padding = "SAME")(outputs)
 	outputs = MaxPooling2D(pool_size = (2,2), strides = (2,2))(outputs)
@@ -72,11 +72,16 @@ def loss(logits, labels):
 	softmax = tf.nn.softmax_cross_entropy_with_logits(logits = logits, labels = labels)
 	return tf.reduce_mean(softmax)
 
-def train(loss, lr):
+def train(loss, lr, optimizer = "ADAM"):
 	#训练句柄
 	global_step = tf.Variable(0, trainable = False)
-	return tf.train.AdamOptimizer(lr).minimize(loss, global_step = global_step)
-
+	if optimizer == "ADAM":
+		return tf.train.AdamOptimizer(lr).minimize(loss, global_step = global_step)
+	elif optimizer == "SGD":
+		decay_rate = 0.99
+		decay_steps = 100
+		learning_rate = tf.train.exponential_decay(lr, global_step, decay_steps, decay_rate, staircase = True)
+		return tf.train.GradientDescentOptimizer(learning_rate).minimize(loss, global_step)
 def evaluation(logits, labels):
 	#评价结果
 	return tf.reduce_mean(tf.cast(tf.equal(tf.argmax(logits, 1), tf.argmax(labels, 1)), tf.float32))

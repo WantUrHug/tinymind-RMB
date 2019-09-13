@@ -6,9 +6,9 @@ from input_data import train_data_gen, test_data_gen
 from utils import show_result, save_his_csv
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-os.environ['CUDA_VISIBLE_DEVICES']='0,1,2,3'
+#os.environ['CUDA_VISIBLE_DEVICES']='0,1,2,3'
 #定义常数
-BATCH_SIZE = 128
+BATCH_SIZE = 64
 IMAGE_H = 224
 IMAGE_W = 224
 CHANNEL = 3
@@ -46,7 +46,7 @@ X = tf.placeholder(tf.float32, [None, IMAGE_H, IMAGE_W, CHANNEL], name = "X")
 Y = tf.placeholder(tf.int32, [None, NUM_CLASSES], name = "Y")
 
 #定义一个操作添加到默认图之中，后续可以测试
-outputs = model.inference(X, 10)
+outputs = model.Simple_VGG_19(X, 10)
 tf.add_to_collection("outputs", outputs)
 
 #各种句柄都要添加到图中
@@ -105,5 +105,5 @@ with tf.Session(config=tf.ConfigProto(log_device_placement=False, allow_soft_pla
 
 	#saver.save(sess, os.path.join(model_dir, "random_crop"), global_step = MAXSTEP)
 
-#show_result(history)
+show_result(history)
 save_his_csv(history, '1.csv')
